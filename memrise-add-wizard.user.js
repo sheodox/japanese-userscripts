@@ -36,7 +36,7 @@
         display: inline-block;
         margin: 0 2px;
     }
-    .control-panel input {
+    .control-panel input, .control-panel select {
         background-color: #23282f;
         border: none;
     }
@@ -212,6 +212,9 @@
                     }, '');
                     wordFields.common = common;
 
+                    $commonSelection.append($('<option>').attr('value', wordFields.common).text(wordFields.common));
+                    $commonSelection.append($('<option>').attr('value', wordFields.kana).text(wordFields.kana));
+
                     $jishoInfo.find('.sentences').remove();
                     $dialog.find('#word-info').text(`${wordFields.common} - ${wordFields.kana}`);
                     $dialog.find('#jisho-definition').html($jishoInfo.find('.meanings-wrapper').html());
@@ -239,14 +242,22 @@
                 });
 
             $dialog.append(`
-            <button id="read-word">🔊</button>
-            <span id="word-info"></span>
+            <div class="columns">
+                <div class="one-half">
+                    <button id="read-word">🔊</button>
+                    <span id="word-info"></span>
+                </div>
+                <div class="one-half">
+                    <label for="select-common">Choice of common:</label>
+                    <select id="select-common"></select>
+                </div>
+            </div>
             <br>
             <label for="working-definition">Definition:</label>
             <br>
             <textarea id="working-definition"></textarea>
             <br>
-            <button id="submit-definition">Definition Complete!</button>
+            <button id="submit-definition">Finish!</button>
             <br>
             <div class="columns" id="definition-selection">
                 <div class="column one-half">
@@ -259,6 +270,8 @@
                 </div>
             </div>
             `);
+
+            const $commonSelection = $dialog.find('#select-common');
 
             $dialog.find('#read-word').on('click', function() {
                 const utterance = new SpeechSynthesisUtterance(wordFields.kana);
@@ -277,6 +290,7 @@
                 });
 
             $dialog.find('#submit-definition').on('click', function() {
+                wordFields.common = $commonSelection.val();
                 res();
                 close();
             });
