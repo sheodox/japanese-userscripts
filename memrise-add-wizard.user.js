@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name         Memrise Add Wizard
 // @namespace    http://tampermonkey.net/
+// @updateURL    https://github.com/sheodox/japanese-userscripts/raw/master/memrise-add-wizard.user.js
 // @version      0.1
 // @description  Wizard for adding words to a course
 // @author       sheodox
