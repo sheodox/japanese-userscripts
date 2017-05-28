@@ -12,7 +12,7 @@ Several shortcut keys for Jisho.org searches (while not typing in the search bar
 
 ## memrise-add-wizard.user.js
 
-A wizard of sorts for easily adding words to a course. Press **Alt + W** while focusing an input in the 'add' row and paste the context sentence in the dialog, then select the word you wish to study. Then enter a definition by selecting pieces of the Jisho/Goo definitions (selecting text will automatically add it to the definition). Hit submit and it'll fill out all the textboxes.
+A wizard of sorts for easily adding words to a course. Press **Alt + W** while focusing an input in the 'add' row and paste the context sentence in the dialog, then select the word you wish to study. Then enter a definition by selecting pieces of the Jisho/Goo definitions (selecting text will automatically add it to the definition). Hit submit and it'll fill out all the textboxes. It looks like [this.](https://streamable.com/0qvah)
 
 It assumes your course is set up with these columns:
 
