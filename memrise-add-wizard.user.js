@@ -289,11 +289,11 @@
                     const selection = window.getSelection().toString(),
                         def = $definition.val().trim() + ' ' + selection.trim();
                     $definition.val(def);
-                    wordFields.definition = def;
                 });
 
             $dialog.find('#submit-definition').on('click', function() {
                 wordFields.common = $commonSelection.val();
+                wordFields.definition = $definition.val();
                 res();
                 close();
             });
