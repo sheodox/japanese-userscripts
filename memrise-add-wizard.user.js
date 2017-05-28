@@ -176,9 +176,12 @@
             $dialog.find('#context-sentence')
                 .text(wordFields.context)
                 .on('mouseup', function() {
-                    wordFields.common = window.getSelection().toString();
-                    res();
-                    close();
+                    const selection = window.getSelection().toString();
+                    if (selection) {
+                        wordFields.common = selection;
+                        res();
+                        close();
+                    }
                 });
         });
     }
@@ -276,7 +279,7 @@
             $dialog.find('#read-word').on('click', function() {
                 const utterance = new SpeechSynthesisUtterance(wordFields.kana);
                 utterance.voice = speechSynthesis.getVoices()
-                        .find(voice => {return voice.lang === 'ja-JP'});
+                        .find(voice => {return voice.lang === 'ja-JP';});
                 speechSynthesis.speak(utterance);
             });
 
