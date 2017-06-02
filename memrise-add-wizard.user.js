@@ -85,6 +85,18 @@
     .control-panel button:hover {
         background: #556172;
     }
+    .control-panel .definition-header {
+        margin: 0;
+    }
+    .control-panel .definition-toolbar {
+        background: #272d34;
+        padding: 0.2rem;
+        margin-bottom: 0.4rem;
+    }
+    .control-panel .definition-toolbar > button {
+        margin: 0;
+        padding: 0.1rem 0.5rem;
+    }
     </style>`).appendTo('head');
 
     function createDialog(title) {
@@ -169,22 +181,44 @@
         });
     }
 
-    function searchGoo(encoded) {
-        return new Promise((resolve, reject) => {
-            get(`https://dictionary.goo.ne.jp/srch/all/${encoded}/m1u/`)
-                .then(result => {
-                    const firstWordUrl = parseAndSelect(result, '#NR-main a').attr('href');
-                    //make sure it's a goo link, could otherwise be a twitter link
-                    if (firstWordUrl.indexOf('/') === 0) {
-                        get(`https://dictionary.goo.ne.jp${firstWordUrl}`)
-                            .then(resolve, reject);
-                    }
-                    else {
-                        reject('Word not found.');
-                    }
-                });
-        });
+    function GooSearcher(encodedWord) {
+        this.results = get(`https://dictionary.goo.ne.jp/srch/all/${encodedWord}/m1u/`)
+            .then(results => {
+                const $defLinks = parseAndSelect(results, '#NR-main').find('a[href^="/jn/"]');
+                this.numDefinitions = $defLinks.length;
+                return [].map.call($defLinks, function(link) {
+                    return link.getAttribute('href');
+                })
+            });
+        this.index = -1;
     }
+    GooSearcher.prototype = {
+        next: function() {
+            this.index++;
+            return this.get();
+        },
+        prev: function() {
+            this.index--;
+            return this.get();
+        },
+        get: function() {
+            return this.results
+                .then((results) => {
+                    //make sure we're within range
+                    this.index = Math.max(0, Math.min(this.index, this.numDefinitions - 1));
+                    return new Promise((resolve, reject) => {
+                        const wordUrl = results[this.index];
+                        if (wordUrl) {
+                            get(`https://dictionary.goo.ne.jp${wordUrl}`)
+                                .then(resolve, reject);
+                        }
+                        else {
+                            reject('Word not found.');
+                        }
+                    });
+                });
+        }
+    };
 
     function getWord() {
         return new Promise(res => {
@@ -226,7 +260,6 @@
                 .then(function(json) {
                     const apiSearch = JSON.parse(json),
                         wordJapanese = apiSearch.data[0].japanese[0];
-                    console.log(wordJapanese);
                     wordFields.kana = wordJapanese.reading;
                     wordFields.common = wordJapanese.word;
                 })
@@ -243,26 +276,38 @@
                     $dialog.find('#word-info').text(`${wordFields.common} - ${wordFields.kana}`);
                     $dialog.find('#jisho-definition').html($jishoInfo.find('.meanings-wrapper').html());
 
-                    searchGoo(encodeURIComponent(wordFields.common))
-                        .then(html => {
-                            const $gooInfo = parseAndSelect(html, '#NR-main'),
-                                $explanation = $gooInfo.find('.explanation');
-                            $explanation.find('a').each(function() {
-                                const href = this.getAttribute('href');
-                                if (href.indexOf('/') === 0) {
-                                    this.setAttribute('href', 'https://dictionary.goo.ne.jp/' + href);
-                                }
-                                else {
-                                    this.removeAttribute('href');
-                                }
-                            });
+                    function handleGooResults(html) {
+                        const $gooInfo = parseAndSelect(html, '#NR-main'),
+                            $explanation = $gooInfo.find('.explanation');
+                        $explanation.find('a').each(function() {
+                            const href = this.getAttribute('href');
+                            if (href.indexOf('/') === 0) {
+                                this.setAttribute('href', 'https://dictionary.goo.ne.jp/' + href);
+                            }
+                            else {
+                                this.removeAttribute('href');
+                            }
+                        });
 
-                            $dialog.find('#goo-word').text($gooInfo.find('.header.ttl-a.ttl-a-jn').text());
-                            $dialog.find('#goo-definition').html($explanation.html());
-                        })
-                        .catch(error => {
-                            $dialog.find('#goo-definition').text(error);
-                        })
+                        $dialog.find('#goo-word').text($gooInfo.find('.header.ttl-a.ttl-a-jn').text());
+                        $dialog.find('#goo-definition').html($explanation.html());
+                        $dialog.find('.definition-counter').text(`${goosearch.index + 1}/${goosearch.numDefinitions}`);
+                    }
+                    function handleGooError(error) {
+                        $dialog.find('#goo-definition').text(error);
+                    }
+                    const goosearch = new GooSearcher(wordFields.common);
+                    goosearch.next()
+                        .then(handleGooResults, handleGooError);
+
+                    $dialog.find('.goo .back').on('click', function(){
+                        goosearch.prev()
+                            .then(handleGooResults, handleGooError);
+                    });
+                    $dialog.find('.goo .next').on('click', function(){
+                        goosearch.next()
+                            .then(handleGooResults, handleGooError);
+                    });
                 });
 
             $dialog.append(`
@@ -284,12 +329,17 @@
             <button id="submit-definition">Finish!</button>
             <br>
             <div class="columns" id="definition-selection">
-                <div class="column one-half">
-                    <p>Jisho</p>
+                <div class="column one-half definition-display">
+                    <p class="definition-header">Jisho</p>
                     <div id="jisho-definition"></div>
                 </div>
-                <div class="column one-half goo">
-                    <p>Goo - <span id="goo-word"></span></p>
+                <div class="column one-half goo definition-display">
+                    <p class="definition-header">Goo - <span id="goo-word"></span></p>
+                    <div class="definition-toolbar">
+                        <span class="definition-counter"></span>
+                        <button class="back" title="Previous definition">←</button>
+                        <button class="next" title="Next definition">→</button>
+                    </div>
                     <div id="goo-definition"></div>
                 </div>
             </div>
