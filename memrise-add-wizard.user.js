@@ -40,6 +40,9 @@
         background-color: #23282f;
         border: none;
     }
+    .control-panel #context-sentence {
+        font-size: 1.5rem;
+    }
     .control-panel .columns {
         clear: both;
     }
@@ -155,7 +158,7 @@
             const [$dialog, close] = createDialog("Context Sentence");
             $dialog.append(`
             <label for="context-sentence">Paste or type context sentence:</label>
-            <input id="context-sentence">
+            <input id="context-sentence-input">
             `);
             function registerContext(context) {
                 //remove preceding periods
@@ -168,7 +171,7 @@
                 close();
                 res();
             }
-            $dialog.find('#context-sentence')
+            $dialog.find('#context-sentence-input')
                 .focus()
                 .on('keydown', function(e) {
                     if (e.which === 13) {
