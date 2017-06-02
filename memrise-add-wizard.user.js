@@ -89,7 +89,7 @@
 
     function createDialog(title) {
         const $dlg = $(`
-        <div class="control-panel">
+        <div class="control-panel" tabindex="0">
             <h2></h2>
             <button class="control-panel-close">Ｘ</button>
             <div class="control-panel-content"></div>
@@ -99,6 +99,12 @@
         $dlg.find('.control-panel-close').on('click', () => {
             $dlg.remove();
         });
+        $dlg.on('keydown', function(e) {
+            if (e.which === 27) {
+                $dlg.remove();
+            }
+        });
+        $dlg.focus();
         return [$dlg.find('.control-panel-content'), function() { $dlg.remove(); }];
     }
 
