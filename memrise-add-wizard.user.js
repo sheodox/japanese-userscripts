@@ -215,18 +215,19 @@
         return new Promise(res => {
             const [$dialog, close] = createDialog('Definition Lookup'),
                 encoded = encodeURIComponent(wordFields.common);
-            get(`http://jisho.org/search/${encoded}`)
+            get(`http://jisho.org/api/v1/search/words?keyword=${encoded}`)
+                .then(function(json) {
+                    const apiSearch = JSON.parse(json),
+                        wordJapanese = apiSearch.data[0].japanese[0];
+                    console.log(wordJapanese);
+                    wordFields.kana = wordJapanese.reading;
+                    wordFields.common = wordJapanese.word;
+                })
+                .then(function() {
+                    return get(`http://jisho.org/search/${encoded}`);
+                })
                 .then(html => {
                     const $jishoInfo = parseAndSelect(html, '.concept_light');
-                    //try to parse accurate kana
-                    const $furigana = $jishoInfo.find('.furigana').find('span'), //each character is represented by a span, empty span means it's not above a kanji
-                        common = $jishoInfo.find('.concept_light-representation .text').text().trim();
-
-                    wordFields.kana = [].reduce.call(common, function(done, next, index) {
-                        const correspondingFurigana = $furigana.eq(index).text().trim();
-                        return done + (correspondingFurigana ? correspondingFurigana : next);
-                    }, '');
-                    wordFields.common = common;
 
                     $commonSelection.append($('<option>').attr('value', wordFields.common).text(wordFields.common));
                     $commonSelection.append($('<option>').attr('value', wordFields.kana).text(wordFields.kana));
@@ -235,7 +236,7 @@
                     $dialog.find('#word-info').text(`${wordFields.common} - ${wordFields.kana}`);
                     $dialog.find('#jisho-definition').html($jishoInfo.find('.meanings-wrapper').html());
 
-                    searchGoo(encodeURIComponent(common))
+                    searchGoo(encodeURIComponent(wordFields.common))
                         .then(html => {
                             const $gooInfo = parseAndSelect(html, '#NR-main'),
                                 $explanation = $gooInfo.find('.explanation');
