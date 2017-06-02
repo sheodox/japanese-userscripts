@@ -142,22 +142,29 @@
         return new Promise(res => {
             const [$dialog, close] = createDialog("Context Sentence");
             $dialog.append(`
-            <label for="context-sentence">Paste context sentence:</label>
+            <label for="context-sentence">Paste or type context sentence:</label>
             <input id="context-sentence">
             `);
+            function registerContext(context) {
+                //remove preceding periods
+                context = context.replace(/^。/, '');
+                //remove dangling quotes
+                if (/(^[^「].*」$)|(^「.*[^」]$)/.test(context)) {
+                    context = context.replace(/^「|」$/, '');
+                }
+                wordFields.context = context;
+                close();
+                res();
+            }
             $dialog.find('#context-sentence')
                 .focus()
-                .on('paste', function(e) {
-                    let context = e.originalEvent.clipboardData.getData('text');
-                    //remove preceding periods
-                    context = context.replace(/^。/, '');
-                    //remove dangling quotes
-                    if (/(^[^「].*」$)|(^「.*[^」]$)/.test(context)) {
-                        context = context.replace(/^「|」$/, '');
+                .on('keydown', function(e) {
+                    if (e.which === 13) {
+                        registerContext(this.value);
                     }
-                    wordFields.context = context;
-                    close();
-                    res();
+                })
+                .on('paste', function(e) {
+                    registerContext(e.originalEvent.clipboardData.getData('text'));
                 });
         });
     }
