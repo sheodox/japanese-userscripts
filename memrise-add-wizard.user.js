@@ -142,7 +142,14 @@
             $dialog.find('#context-sentence')
                 .focus()
                 .on('paste', function(e) {
-                    wordFields.context = e.originalEvent.clipboardData.getData('text');
+                    let context = e.originalEvent.clipboardData.getData('text');
+                    //remove preceding periods
+                    context = context.replace(/^。/, '');
+                    //remove dangling quotes
+                    if (/(^[^「].*」$)|(^「.*[^」]$)/.test(context)) {
+                        context = context.replace(/^「|」$/, '');
+                    }
+                    wordFields.context = context;
                     close();
                     res();
                 });
