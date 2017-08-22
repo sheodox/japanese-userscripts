@@ -2,7 +2,7 @@
 // @name         Memrise Add Wizard
 // @namespace    http://tampermonkey.net/
 // @updateURL    https://github.com/sheodox/japanese-userscripts/raw/master/memrise-add-wizard.user.js
-// @version      0.4
+// @version      0.4.1
 // @description  Wizard for adding words to a course
 // @author       sheodox
 // @match        https://www.memrise.com/course/*/edit/*
@@ -281,7 +281,7 @@
 
                     function handleGooResults(html) {
                         const $gooInfo = parseAndSelect(html, '#NR-main'),
-                            $explanation = $gooInfo.find('.explanation');
+                            $explanation = $gooInfo.find('.meaning_area .contents');
                         $explanation.find('a').each(function() {
                             const href = this.getAttribute('href');
                             if (href.indexOf('/') === 0) {
@@ -292,7 +292,7 @@
                             }
                         });
 
-                        $dialog.find('#goo-word').text($gooInfo.find('.header.ttl-a.ttl-a-jn').text());
+                        $dialog.find('#goo-word').text($gooInfo.find('.basic_title h1:first').text());
                         $dialog.find('#goo-definition').html($explanation.html());
                         $dialog.find('.definition-counter').text(`${goosearch.index + 1}/${goosearch.numDefinitions}`);
                     }
@@ -353,7 +353,7 @@
             $dialog.find('#read-word').on('click', function() {
                 const utterance = new SpeechSynthesisUtterance(wordFields.kana);
                 utterance.voice = speechSynthesis.getVoices()
-                        .find(voice => {return voice.lang === 'ja-JP';});
+                    .find(voice => {return voice.lang === 'ja-JP';});
                 speechSynthesis.speak(utterance);
             });
 
