@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Jisho Shortcuts
 // @namespace    http://tampermonkey.net/
-// @version      0.2.2
+// @version      0.2.3
 // @description  Hotkeys for some actions on jisho.org
 // @author       sheodox
 // @match        https://jisho.org/*
-// @grant        none
+// @grant        GM_openInTab
 // ==/UserScript==
 
 (function() {
@@ -68,7 +68,7 @@
                 break;
             case 87: //w
                 //open search for first word on dictionary.goo.ne.jp
-                window.open('http://dictionary.goo.ne.jp/srch/all/' + encodeURIComponent(firstResult) + '/m0u/');
+                openTab('http://dictionary.goo.ne.jp/srch/all/' + encodeURIComponent(firstResult) + '/m0u/');
                 break;
             case 82: //r
                 //play sound
@@ -77,7 +77,7 @@
                 break;
             case 71: //g
                 //google the word
-                window.open(`https://www.google.com/search?q=${firstResult}`);
+                openTab(`https://www.google.com/search?q=${firstResult}`);
                 break;
             case 81: //q
                 //read the whole search text
@@ -87,6 +87,14 @@
                 return false;
         }
         return true;
+    }
+    
+    function openTab(url) {
+        GM_openInTab(url, {
+            active: true,
+            insert: true,
+            setParent: true
+        })
     }
 
     document.body.addEventListener('keydown', e => {
