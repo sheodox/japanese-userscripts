@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jisho Search
 // @namespace    http://tampermonkey.net/
-// @version      0.0.1
+// @version      0.0.2
 // @description  Search Jisho for the selected text.
 // @author       sheodox
 // @match        *://*/*
@@ -10,9 +10,10 @@
 // ==/UserScript==
 
 (function () {
-    GM_openInTab(`https://jisho.org/search/${encodeURIComponent(getSelection().toString())}`, {
+    GM_openInTab(`https://jisho.org/search/${encodeURIComponent(getSelection().toString() || prompt('search for what?'))}`, {
         active: true,
         insert: true,
         setParent: true
     })
 }());
+
