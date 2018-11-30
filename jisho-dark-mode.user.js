@@ -31,6 +31,15 @@ header {
 /* make search text stand out better */
 #keyword {
     color: black;
+    background-color: #cecece;
+}
+#search_main .inner {
+    background: none;
+}
+/* make grammar breakdowns not super dark */
+.fact {
+    background: #cecece;
+    border: none;
 }
 `;
 
