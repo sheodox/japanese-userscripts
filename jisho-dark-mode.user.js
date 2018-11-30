@@ -24,9 +24,15 @@ header {
 .japanese_word__furigana-invisible {
     color: transparent;
 }
-/* counteract filtering on tags */
 .concept_light-tag {
+    /* counteract filtering on tags, the background color is fine */
     filter: invert(1);
+    /* better contrast text */
+    color: black !important;
+}
+/* wanikani links */
+.concept_light-tag a {
+    color: black !important;
 }
 /* make search text stand out better */
 #keyword {
