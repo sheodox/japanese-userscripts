@@ -13,6 +13,10 @@ Several shortcut keys for Jisho.org searches (while not typing in the search bar
 * **q** - read entire search text
 * **g** - google the word
 
+## [jisho-dark-mode.user.js](https://github.com/sheodox/japanese-userscripts/raw/master/jisho-dark-mode.user.js)
+
+Dark mode for Jisho. I made this for using with my [context sentence review tool](https://github.com/sheodox/japanese-context-sentence-review) so going between dark and light themes isn't so jarring, but it can certainly be used on its own.
+
 ## [memrise-add-wizard.user.js](https://github.com/sheodox/japanese-userscripts/raw/master/memrise-add-wizard.user.js)
 
 A wizard of sorts for easily adding words to a course. Press **Alt + W** while focusing an input in the 'add' row and paste the context sentence in the dialog, then select the word you wish to study. Then enter a definition by selecting pieces of the Jisho/Goo definitions (selecting text will automatically add it to the definition). Hit submit and it'll fill out all the textboxes. It looks like [this.](https://streamable.com/0qvah)
