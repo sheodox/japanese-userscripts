@@ -2,9 +2,9 @@
 // @name         Jisho Dark Mode
 // @namespace    http://tampermonkey.net/
 // @version      0.0.1
-// @description  try to take over the world!
+// @description  Eye friendly dark mode for Jisho.org.
 // @author       sheodox
-// @match        https://jisho.org/*/*
+// @match        https://jisho.org/*
 // @run-at       document-start
 // @grant        none
 // ==/UserScript==
