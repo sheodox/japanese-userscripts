@@ -14,7 +14,7 @@
     const styleTxt = `
 body {
     filter: invert(1);
-    background: #24252b;
+    background: #24252b !important;
 }
 header {
     /* weird black background on header */
