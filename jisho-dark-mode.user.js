@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jisho Dark Mode
 // @namespace    http://tampermonkey.net/
-// @version      0.0.4
+// @version      0.0.5
 // @description  Eye friendly dark mode for Jisho.org.
 // @author       sheodox
 // @match        https://jisho.org/*
