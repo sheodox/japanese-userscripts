@@ -1,23 +1,29 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.1
+// @version      0.0.2
 // @description  Display SRT format subtitles on VRV
-// @author       You
+// @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
 // @grant        none
 // ==/UserScript==
 
 const showOnTopStyles = {
-    position: 'absolute',
-    zIndex: '1000000000'
-};
+        position: 'absolute',
+        zIndex: '1000000000'
+    },
+    centeredStyles = Object.assign({
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)'
+    }, showOnTopStyles);
 
 
 (function() {
     'use strict';
 
     const ta = document.createElement('textarea');
+    ta.setAttribute('placeholder', 'paste SRT file contents here');
     
     ta.addEventListener('keyup', () => {
         if (ta.value.length) {
@@ -25,7 +31,7 @@ const showOnTopStyles = {
             ta.remove();
         }
     });
-    Object.assign(ta.style, showOnTopStyles);
+    Object.assign(ta.style, centeredStyles);
     document.body.appendChild(ta);
     console.log(ta);
 })();
@@ -36,6 +42,7 @@ class SubRenderer {
         this.video = document.querySelector('video');
         
         this.subEl = document.createElement('pre');
+        this.subEl.setAttribute('title', 'Click to search this line on Jisho');
         Object.assign(this.subEl.style, {
             fontSize: '1.5rem',
             textAlign: 'center',
@@ -48,11 +55,19 @@ class SubRenderer {
         
         this.subEl.addEventListener('click', () => {
             window.open(`https://jisho.org/search/${encodeURIComponent(this.currentSub)}`);
+            this.video.pause();
         });
         
+        //use when a button is clicked to get the difference between the time things are actually said and the specified time in the SRT
         this.startOffsetBtn = document.createElement('button');
-        this.startOffsetBtn.textContent = 'Click when the first line is said';
-        Object.assign(this.startOffsetBtn.style, showOnTopStyles);
+        this.startOffsetBtn.textContent = 'Click when the first line is said: ';
+        const firstLine = document.createElement('pre');
+        firstLine.textContent = this.srt.subs[0].text;
+        this.startOffsetBtn.appendChild(firstLine);
+        
+        Object.assign(this.startOffsetBtn.style, {
+            fontSize: '2rem',
+        }, centeredStyles);
         
         this.startOffsetBtn.addEventListener('click', () => {
             this.subOffset = this.video.currentTime * 1000 - this.srt.subs[0].start - 400; //assume decent reaction time
