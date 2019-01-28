@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.3
+// @version      0.0.4
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -42,7 +42,7 @@ class SubRenderer {
         this.video = document.querySelector('video');
         
         this.subEl = document.createElement('pre');
-        this.subEl.setAttribute('title', 'Click to search this line on Jisho');
+        this.subEl.setAttribute('title', 'Click to search this line on Jisho\nRight click to search the previous line');
         Object.assign(this.subEl.style, {
             fontSize: '1.5rem',
             textAlign: 'center',
@@ -53,9 +53,27 @@ class SubRenderer {
         }, showOnTopStyles);
         document.body.appendChild(this.subEl);
         
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && this.resumeOnReturn) {
+                this.video.play();
+                this.resumeOnReturn = false;
+            }
+        });
+        
+        const define = sub => {
+            window.open(`https://jisho.org/search/${encodeURIComponent(sub)}`);
+            if (!this.video.paused) {
+                this.video.pause();
+                this.resumeOnReturn = true;
+            }
+        };
+        
         this.subEl.addEventListener('click', () => {
-            window.open(`https://jisho.org/search/${encodeURIComponent(this.currentSub)}`);
-            this.video.pause();
+            define(this.currentSub);
+        });
+        this.subEl.addEventListener('contextmenu', e => {
+            define(this.previousSub);
+            e.preventDefault();
         });
         
         //use when a button is clicked to get the difference between the time things are actually said and the specified time in the SRT
@@ -84,6 +102,10 @@ class SubRenderer {
     frame() {
         const text = this.srt.getSub(this.video.currentTime * 1000 - this.subOffset);
         this.subEl.textContent = text;
+        //if it's a different line, and the currently displayed line isn't just a blank line, cache it as the previous line
+        if (this.currentSub !== text && this.currentSub) {
+            this.previousSub = this.currentSub;
+        }
         this.currentSub = text;
 
         requestAnimationFrame(() => {
