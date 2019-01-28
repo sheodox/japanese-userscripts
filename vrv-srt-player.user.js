@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.2
+// @version      0.0.3
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -94,23 +94,32 @@ class SubRenderer {
 
 class SRT {
     constructor(srt, firstSubTime) {
-        this.firstSubTime = firstSubTime;
         this.parse(srt);
     }
     parse(srt) {
+        //split subs up by the double line breaks
         const subs = srt.split('\n\n');
         this.subs = subs.reduce((done, sub) => {
-            sub = sub.trim();
+            let lines = sub.trim().split('\n');
+
+            /**
+             * shift the array of lines for this sub entry, consider the current index 0 line processed
+             */
+            function shift() {
+                lines.shift();
+            }
             try {
-                const [startStr, endStr] = sub.match(/^([\d:\.\-> ]*)/)[0].split(/\-\->/);
-                let text = sub.split('\n').slice(1).join('\n');
-                
-                text = text.replace(/<\/?c.Japanese>/g, '');
+                //sometimes subs come numbered with a number on the line above the start/end times, throw it away
+                if (/^\d*$/.test(lines[0])) {
+                    shift();
+                }
+                const [startStr, endStr] = lines[0].match(/^([\d:\.\-> ]*)/)[0].split(/\-\->/);
+                shift();
 
                 done.push({
                     start: this.toMS(startStr),
                     end: this.toMS(endStr),
-                    text
+                    text: lines.join('\n').replace(/<\/?c.Japanese>/g, '')
                 });
             } catch(e){}
             return done;
