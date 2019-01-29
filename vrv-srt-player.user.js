@@ -85,12 +85,14 @@ class SubRenderer {
         tray.innerHTML = `
             <h1>SubRenderer</h1>
             <button class="realign">Realign subs</button>
+            <input id="scroll-subs" type="checkbox" checked>
+            <label for="scroll-subs">Show subs over video</label>
             <h2>Subtitle History</h2>
             <ul class="recent-subs" style="list-style: none;"></ul>
             
             <style>
                 .SR-tray {
-                    width: 3vw;
+                    width: 2vw;
                     background: rgba(255, 255, 255, 0.1);
                 }
                 .SR-tray > * {
@@ -98,7 +100,7 @@ class SubRenderer {
                 }
                 .SR-tray:hover {
                     width: 25vw;
-                    background: rgba(0, 0, 0, 0.4);
+                    background: rgba(0, 0, 0, 0.7);
                 }
                 .SR-tray:hover > * {
                     visibility: visible;
@@ -140,6 +142,7 @@ class SubRenderer {
         
         inTray('button.realign').addEventListener('click', () => this.realign());
         this.DOM.recentSubs = inTray('.recent-subs');
+        this.DOM.showSubs = inTray('#scroll-subs');
     }
 
     /**
@@ -240,7 +243,7 @@ class SubRenderer {
         //don't show subs until we know we're going to show the correct ones
         if (this.aligned) {
             const text = this.srt.getSub(this.video.currentTime * 1000 - this.subOffset);
-            this.DOM.subEl.textContent = text;
+            this.DOM.subEl.textContent = this.DOM.showSubs.checked ? text : '';
             //if it's a different line, and the currently displayed line isn't just a blank line, cache it as the previous line
             if (this.currentSub !== text) {
                 //only cache the previous sub if it's worth caching
