@@ -64,16 +64,89 @@ class SubRenderer {
 
         this.initSubElement();
         this.initSubAlignPrompt();
+        this.initTray();
         
         console.log(`SubRenderer for ${this.video.src} initialized`);
         this.frame();
     }
 
     /**
+     * Create elements for the tray on the side.
+     */
+    initTray() {
+        const tray = this.createTopLevelElement('tray', 'section', {
+                zIndex: '100000000000', //higher than everything else
+                position: 'absolute',
+                right: '0',
+                height: '90%',
+            }),
+            inTray = sel => tray.querySelector(sel);
+        tray.className = 'SR-tray'; //sr = subtitle renderer
+        tray.innerHTML = `
+            <h1>SubRenderer</h1>
+            <button class="realign">Realign subs</button>
+            <h2>Subtitle History</h2>
+            <ul class="recent-subs" style="list-style: none;"></ul>
+            
+            <style>
+                .SR-tray {
+                    width: 3vw;
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                .SR-tray > * {
+                    visibility: hidden;
+                }
+                .SR-tray:hover {
+                    width: 25vw;
+                    background: rgba(0, 0, 0, 0.4);
+                }
+                .SR-tray:hover > * {
+                    visibility: visible;
+                }
+                .SR-tray * {
+                    color: white;
+                }
+                .SR-tray h1 {
+                    font-size: 2rem;
+                    border-bottom: 1px solid #00f9ac;
+                    background: rgba(0, 0, 0, 0.7);
+                    margin: 0;
+                }
+                .SR-tray button {
+                    background: #303138;
+                    border: 1px solid #586c79;
+                    color: white;
+                    cursor: pointer;
+                    padding: 5px;
+                    line-height: 1;
+                }
+                .SR-tray button:hover {
+                    background: #4a4b56;
+                }
+
+                .recent-subs li {
+                    transform: scaleY(0);
+                    transform-origin: top;
+                    transition: transform 0.5s ease;
+                    color: white;
+                    font-size: 1.4rem;
+                }
+                .recent-subs li:hover {
+                    color: #11caf4;
+                    cursor: pointer;
+                }
+            </style>
+        `;
+        
+        inTray('button.realign').addEventListener('click', () => this.realign());
+        this.DOM.recentSubs = inTray('.recent-subs');
+    }
+
+    /**
      * Create the button that's used to align the sub times.
      */
     initSubAlignPrompt() {
-        this.createElement('startOffsetBtn', 'button', {
+        this.createTopLevelElement('startOffsetBtn', 'button', {
             fontSize: '2rem',
             ...centeredStyles
         });
@@ -86,30 +159,30 @@ class SubRenderer {
         
         this.aligned = false;
         this.DOM.startOffsetBtn.addEventListener('click', () => {
-            this.subOffset = this.video.currentTime * 1000 - this.srt.subs[0].start - 400; //assume decent reaction time
             this.DOM.startOffsetBtn.remove();
-            this.aligned = true;
+            this.realign();
         });
         this.subOffset = 0;
-        document.body.appendChild(this.DOM.startOffsetBtn);
-
+    }
+    realign() {
+        this.subOffset = this.video.currentTime * 1000 - this.srt.subs[0].start - 400; //assume decent reaction time
+        this.aligned = true;
     }
 
     /**
      * Create the element that displays the current subtitle.
      */
     initSubElement() {
-        this.createElement('subEl', 'pre', {
+        this.createTopLevelElement('subEl', 'pre', {
             fontSize: '1.5rem',
             textAlign: 'center',
             color: 'white',
             width: '100vw',
-            background: 'rgba(0, 0, 0, 0.3)',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            textShadow: 'black 1px 1px 0px, black 1px -1px 0px, black -1px 1px 0px, black -1px -1px 0px, black 1px 0px 0px, black 0px 1px 0px, black -1px 0px 0px, black 0px -1px 0px, black 1px 1px 1px'
         });
 
         this.DOM.subEl.setAttribute('title', 'Click to search this line on Jisho\nRight click to search the previous line');
-        document.body.appendChild(this.DOM.subEl);
 
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && this.resumeOnReturn) {
@@ -127,13 +200,14 @@ class SubRenderer {
         });
     }
     
-    createElement(name, tag, styles={}) {
+    createTopLevelElement(name, tag, styles={}) {
         const el = document.createElement(tag);
         if (this.DOM[name]) {
             throw new Error(`element with name ${name} already exists. change one of them so SubRenderer destroy functions.`);
         }
         this.DOM[name] = el;
         Object.assign(el.style, {}, styles, showOnTopStyles);
+        document.body.appendChild(el);
         return el;
     }
     
@@ -168,16 +242,38 @@ class SubRenderer {
             const text = this.srt.getSub(this.video.currentTime * 1000 - this.subOffset);
             this.DOM.subEl.textContent = text;
             //if it's a different line, and the currently displayed line isn't just a blank line, cache it as the previous line
-            if (this.currentSub !== text && this.currentSub) {
-                this.previousSub = this.currentSub;
+            if (this.currentSub !== text) {
+                //only cache the previous sub if it's worth caching
+                if (this.currentSub) {
+                    this.previousSub = this.currentSub;
+                }
+                this.insertSubIntoHistory(text);
             }
             this.currentSub = text;
+        }
+    }
+    insertSubIntoHistory(text) {
+        if (!text) return;
+        
+        const li = document.createElement('li');
+        li.textContent = text;
+        
+        this.DOM.recentSubs.insertBefore(li, this.DOM.recentSubs.firstChild);
+        
+        setTimeout(() => {
+            li.style.transform = 'scaleY(1)';
+        }, 1);
+        
+        li.addEventListener('click', () => this.define(text));
+        
+        if (this.DOM.recentSubs.children.length > 10) {
+            this.DOM.recentSubs.lastChild.remove();
         }
     }
 }
 
 class SRT {
-    constructor(srt, firstSubTime) {
+    constructor(srt) {
         this.parse(srt);
     }
     parse(srt) {
