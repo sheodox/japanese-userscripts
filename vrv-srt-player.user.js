@@ -62,33 +62,17 @@ class SubRenderer {
         
         this.DOM = {};
 
-        this.createElement('subEl', 'pre', {
-            fontSize: '1.5rem',
-            textAlign: 'center',
-            color: 'white',
-            width: '100vw',
-            background: 'rgba(0, 0, 0, 0.3)',
-            cursor: 'pointer'
-        });
+        this.initSubElement();
+        this.initSubAlignPrompt();
+        
+        console.log(`SubRenderer for ${this.video.src} initialized`);
+        this.frame();
+    }
 
-        this.DOM.subEl.setAttribute('title', 'Click to search this line on Jisho\nRight click to search the previous line');
-        document.body.appendChild(this.DOM.subEl);
-        
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && this.resumeOnReturn) {
-                this.video.play();
-                this.resumeOnReturn = false;
-            }
-        });
-        
-        this.DOM.subEl.addEventListener('click', () => {
-            this.define(this.currentSub);
-        });
-        this.DOM.subEl.addEventListener('contextmenu', e => {
-            this.define(this.previousSub);
-            e.preventDefault();
-        });
-        
+    /**
+     * Create the button that's used to align the sub times.
+     */
+    initSubAlignPrompt() {
         this.createElement('startOffsetBtn', 'button', {
             fontSize: '2rem',
             ...centeredStyles
@@ -100,16 +84,47 @@ class SubRenderer {
         firstLine.textContent = this.srt.subs[0].text;
         this.DOM.startOffsetBtn.appendChild(firstLine);
         
+        this.aligned = false;
         this.DOM.startOffsetBtn.addEventListener('click', () => {
             this.subOffset = this.video.currentTime * 1000 - this.srt.subs[0].start - 400; //assume decent reaction time
             this.DOM.startOffsetBtn.remove();
+            this.aligned = true;
         });
         this.subOffset = 0;
         document.body.appendChild(this.DOM.startOffsetBtn);
-        
-        console.log(this.srt.subs);
-        
-        this.frame();
+
+    }
+
+    /**
+     * Create the element that displays the current subtitle.
+     */
+    initSubElement() {
+        this.createElement('subEl', 'pre', {
+            fontSize: '1.5rem',
+            textAlign: 'center',
+            color: 'white',
+            width: '100vw',
+            background: 'rgba(0, 0, 0, 0.3)',
+            cursor: 'pointer'
+        });
+
+        this.DOM.subEl.setAttribute('title', 'Click to search this line on Jisho\nRight click to search the previous line');
+        document.body.appendChild(this.DOM.subEl);
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && this.resumeOnReturn) {
+                this.video.play();
+                this.resumeOnReturn = false;
+            }
+        });
+
+        this.DOM.subEl.addEventListener('click', () => {
+            this.define(this.currentSub);
+        });
+        this.DOM.subEl.addEventListener('contextmenu', e => {
+            this.define(this.previousSub);
+            e.preventDefault();
+        });
     }
     
     createElement(name, tag, styles={}) {
@@ -142,18 +157,21 @@ class SubRenderer {
 
 
     frame() {
-        const text = this.srt.getSub(this.video.currentTime * 1000 - this.subOffset);
-        this.DOM.subEl.textContent = text;
-        //if it's a different line, and the currently displayed line isn't just a blank line, cache it as the previous line
-        if (this.currentSub !== text && this.currentSub) {
-            this.previousSub = this.currentSub;
-        }
-        this.currentSub = text;
-
         if (!this.dead) {
             requestAnimationFrame(() => {
                 this.frame();
             });
+        }
+        
+        //don't show subs until we know we're going to show the correct ones
+        if (this.aligned) {
+            const text = this.srt.getSub(this.video.currentTime * 1000 - this.subOffset);
+            this.DOM.subEl.textContent = text;
+            //if it's a different line, and the currently displayed line isn't just a blank line, cache it as the previous line
+            if (this.currentSub !== text && this.currentSub) {
+                this.previousSub = this.currentSub;
+            }
+            this.currentSub = text;
         }
     }
 }
