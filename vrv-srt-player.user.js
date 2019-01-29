@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.5
+// @version      0.0.6
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -137,6 +137,11 @@ class SubRenderer {
                     color: #11caf4;
                     cursor: pointer;
                 }
+                #SR-sub-track p {
+                    margin: 0;
+                    padding: 0;
+                    text-shadow: black 1px 1px 0, black 1px -1px 0, black -1px 1px 0, black -1px -1px 0, black 1px 0 0, black 0 1px 0, black -1px 0 0, black 0 -1px 0, black 1px 1px 1px;
+                }
             </style>
         `;
         
@@ -182,8 +187,9 @@ class SubRenderer {
             color: 'white',
             width: '100vw',
             cursor: 'pointer',
-            textShadow: 'black 1px 1px 0px, black 1px -1px 0px, black -1px 1px 0px, black -1px -1px 0px, black 1px 0px 0px, black 0px 1px 0px, black -1px 0px 0px, black 0px -1px 0px, black 1px 1px 1px'
         });
+        
+        this.DOM.subEl.id = 'SR-sub-track';
 
         this.DOM.subEl.setAttribute('title', 'Click to search this line on Jisho\nRight click to search the previous line');
 
@@ -239,20 +245,50 @@ class SubRenderer {
                 this.frame();
             });
         }
+       
+        let line = 0;
+        const createLine = (text, fontScale) => {
+            //reuse existing element
+            let el = this.DOM.subEl.children[line];
+            if (!el) {
+                el = document.createElement('p');
+                this.DOM.subEl.appendChild(el);
+            }
+            el.textContent = text;
+            el.style.fontSize = `${0.5 + 3 * fontScale}rem`;
+            line++;
+        };
+        const flushRemainingLines = () => {
+            for (let i = line; i < this.DOM.subEl.children.length; i++) {
+                this.DOM.subEl.children[i].textContent = '';
+            }
+        };
         
         //don't show subs until we know we're going to show the correct ones
         if (this.aligned) {
-            const text = this.srt.getSub(this.video.currentTime * 1000 - this.subOffset);
-            this.DOM.subEl.textContent = this.DOM.showSubs.checked ? text : '';
+            const subs = this.srt.getSubs(this.video.currentTime * 1000 - this.subOffset);
+            //clear old subs if nothing is showing
+            if (!subs.length || !this.DOM.showSubs.checked) {
+                this.DOM.subEl.innerHTML = '';
+            }
+            else {
+                subs.forEach(sub => {
+                   createLine(sub.text, sub.line); 
+                });
+                flushRemainingLines();
+            }
             //if it's a different line, and the currently displayed line isn't just a blank line, cache it as the previous line
-            if (this.currentSub !== text) {
+            let newestSub = subs[subs.length - 1];
+            newestSub = newestSub ? newestSub.text : '';
+            if (newestSub && newestSub !== this.currentSub) {
                 //only cache the previous sub if it's worth caching
                 if (this.currentSub) {
                     this.previousSub = this.currentSub;
                 }
-                this.insertSubIntoHistory(text);
+                
+                this.insertSubIntoHistory(newestSub);
             }
-            this.currentSub = text;
+            this.currentSub = newestSub;
         }
     }
     insertSubIntoHistory(text) {
@@ -296,24 +332,34 @@ class SRT {
                 if (/^\d*$/.test(lines[0])) {
                     shift();
                 }
-                const [startStr, endStr] = lines[0].match(/^([\d:\.\-> ]*)/)[0].split(/\-\->/);
+                let [startStr, endStr] = lines[0].match(/^([\d:\.\-> ]*)/)[0].split(/\-\->/),
+                    styling = lines[0].match(/([a-zA-Z].*)/); //the rest of the line starting at the first alphabetical character
+                styling = styling.length ? styling[1] : ''; //might not have styling cues
+                
+                const getPercent = name => {
+                        const match = styling.match(new RegExp(`${name}:([\\d\\.]*)%`));
+                        if (match.length) {
+                            return parseInt(match[1], 10) / 100;
+                        }
+                    },
+                    //percentage of the total line area that is taken up by this subtitle
+                    line = getPercent('line');
                 shift();
 
                 done.push({
                     start: this.toMS(startStr),
                     end: this.toMS(endStr),
-                    text: lines.join('\n').replace(/<\/?c.Japanese>/g, '')
+                    text: lines.join('\n').replace(/<\/?c.Japanese>/g, ''),
+                    line
                 });
             } catch(e){}
             return done;
         }, []);
     }
-    getSub(ms) {
-        const currentSub = this.subs.find(sub => {
+    getSubs(ms) {
+        return this.subs.filter(sub => {
             return sub.start <= ms && sub.end >= ms;
         });
-        
-        return currentSub ? currentSub.text : '';
     }
     toMS(timeStr) {
         const [hr, min, sec] = timeStr.trim().split(':');
