@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.4
+// @version      0.0.5
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -22,18 +22,37 @@ const showOnTopStyles = {
 (function() {
     'use strict';
 
-    const ta = document.createElement('textarea');
-    ta.setAttribute('placeholder', 'paste SRT file contents here');
+    let sr;
     
-    ta.addEventListener('keyup', () => {
-        if (ta.value.length) {
-            new SubRenderer(ta.value);
-            ta.remove();
+    function promptSRT() {
+        //remove everything for the previous subrenderer
+        console.log(`\n\nNEW VIDEO\n\n`);
+        if (sr) {
+            sr.destroy();
         }
-    });
-    Object.assign(ta.style, centeredStyles);
-    document.body.appendChild(ta);
-    console.log(ta);
+        let ta = document.createElement('textarea');
+        ta.setAttribute('placeholder', 'paste SRT file contents here');
+
+        ta.addEventListener('keyup', () => {
+            if (ta.value.length) {
+                sr = new SubRenderer(ta.value);
+                ta.remove();
+            }
+        });
+        Object.assign(ta.style, centeredStyles);
+        document.body.appendChild(ta);
+    }
+    
+    //poll for video changes
+    let lastSrc = '';
+    setInterval(() => {
+        //query the video each time, i think the whole element gets removed and replaced
+        const curSrc = document.querySelector('video').getAttribute('src');
+        if (curSrc && curSrc !== lastSrc) {
+            lastSrc = curSrc;
+            promptSRT();
+        }
+    }, 50);
 })();
 
 class SubRenderer {
@@ -41,17 +60,19 @@ class SubRenderer {
         this.srt = new SRT(srt);
         this.video = document.querySelector('video');
         
-        this.subEl = document.createElement('pre');
-        this.subEl.setAttribute('title', 'Click to search this line on Jisho\nRight click to search the previous line');
-        Object.assign(this.subEl.style, {
+        this.DOM = {};
+
+        this.createElement('subEl', 'pre', {
             fontSize: '1.5rem',
             textAlign: 'center',
             color: 'white',
             width: '100vw',
             background: 'rgba(0, 0, 0, 0.3)',
             cursor: 'pointer'
-        }, showOnTopStyles);
-        document.body.appendChild(this.subEl);
+        });
+
+        this.DOM.subEl.setAttribute('title', 'Click to search this line on Jisho\nRight click to search the previous line');
+        document.body.appendChild(this.DOM.subEl);
         
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && this.resumeOnReturn) {
@@ -60,57 +81,80 @@ class SubRenderer {
             }
         });
         
-        const define = sub => {
-            window.open(`https://jisho.org/search/${encodeURIComponent(sub)}`);
-            if (!this.video.paused) {
-                this.video.pause();
-                this.resumeOnReturn = true;
-            }
-        };
-        
-        this.subEl.addEventListener('click', () => {
-            define(this.currentSub);
+        this.DOM.subEl.addEventListener('click', () => {
+            this.define(this.currentSub);
         });
-        this.subEl.addEventListener('contextmenu', e => {
-            define(this.previousSub);
+        this.DOM.subEl.addEventListener('contextmenu', e => {
+            this.define(this.previousSub);
             e.preventDefault();
         });
         
+        this.createElement('startOffsetBtn', 'button', {
+            fontSize: '2rem',
+            ...centeredStyles
+        });
         //use when a button is clicked to get the difference between the time things are actually said and the specified time in the SRT
-        this.startOffsetBtn = document.createElement('button');
-        this.startOffsetBtn.textContent = 'Click when the first line is said: ';
+        this.DOM.startOffsetBtn.textContent = 'Click when the first line is said: ';
+        //not in this.DOM because it's contained by something else, not necessary to clean up individually
         const firstLine = document.createElement('pre');
         firstLine.textContent = this.srt.subs[0].text;
-        this.startOffsetBtn.appendChild(firstLine);
+        this.DOM.startOffsetBtn.appendChild(firstLine);
         
-        Object.assign(this.startOffsetBtn.style, {
-            fontSize: '2rem',
-        }, centeredStyles);
-        
-        this.startOffsetBtn.addEventListener('click', () => {
+        this.DOM.startOffsetBtn.addEventListener('click', () => {
             this.subOffset = this.video.currentTime * 1000 - this.srt.subs[0].start - 400; //assume decent reaction time
-            this.startOffsetBtn.remove();
+            this.DOM.startOffsetBtn.remove();
         });
         this.subOffset = 0;
-        document.body.appendChild(this.startOffsetBtn);
+        document.body.appendChild(this.DOM.startOffsetBtn);
         
         console.log(this.srt.subs);
         
         this.frame();
     }
     
+    createElement(name, tag, styles={}) {
+        const el = document.createElement(tag);
+        if (this.DOM[name]) {
+            throw new Error(`element with name ${name} already exists. change one of them so SubRenderer destroy functions.`);
+        }
+        this.DOM[name] = el;
+        Object.assign(el.style, {}, styles, showOnTopStyles);
+        return el;
+    }
+    
+    destroy() {
+        this.dead = true;
+        Object.keys(this.DOM).forEach(elName => {
+            const el = this.DOM[elName];
+            if (el) {
+                el.remove();
+            }
+        });
+    }
+    
+    define(sub) {
+        window.open(`https://jisho.org/search/${encodeURIComponent(sub)}`);
+        if (!this.video.paused) {
+            this.video.pause();
+            this.resumeOnReturn = true;
+        }
+    };
+
+
     frame() {
         const text = this.srt.getSub(this.video.currentTime * 1000 - this.subOffset);
-        this.subEl.textContent = text;
+        this.DOM.subEl.textContent = text;
         //if it's a different line, and the currently displayed line isn't just a blank line, cache it as the previous line
         if (this.currentSub !== text && this.currentSub) {
             this.previousSub = this.currentSub;
         }
         this.currentSub = text;
 
-        requestAnimationFrame(() => {
-            this.frame();
-        });
+        if (!this.dead) {
+            requestAnimationFrame(() => {
+                this.frame();
+            });
+        }
     }
 }
 
