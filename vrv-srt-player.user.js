@@ -297,7 +297,8 @@ class SubRenderer {
         const li = document.createElement('li');
         li.textContent = text;
         
-        this.DOM.recentSubs.insertBefore(li, this.DOM.recentSubs.firstChild);
+        this.DOM.recentSubs.appendChild(li);
+        li.style.maxHeight = getComputedStyle(li).height;
         
         setTimeout(() => {
             li.style.transform = 'scaleY(1)';
@@ -306,7 +307,7 @@ class SubRenderer {
         li.addEventListener('click', () => this.define(text));
         
         if (this.DOM.recentSubs.children.length > 10) {
-            this.DOM.recentSubs.lastChild.remove();
+            this.DOM.recentSubs.firstChild.remove();
         }
     }
 }
