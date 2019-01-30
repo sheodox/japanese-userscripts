@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.6
+// @version      0.0.7
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
-// @grant        none
+// @grant        GM_getValue
+// @grant        GM_setValue
 // ==/UserScript==
 
 const showOnTopStyles = {
@@ -59,6 +60,7 @@ class SubRenderer {
     constructor(srt) {
         this.srt = new SRT(srt);
         this.video = document.querySelector('video');
+        this.alignmentKey = 'last-used-alignment';
         
         this.DOM = {};
 
@@ -154,27 +156,43 @@ class SubRenderer {
      * Create the button that's used to align the sub times.
      */
     initSubAlignPrompt() {
-        this.createTopLevelElement('startOffsetBtn', 'button', {
+        const lastAlignment = GM_getValue(this.alignmentKey);
+        
+        this.createTopLevelElement('alignmentSetContainer', 'div', {
             fontSize: '2rem',
             ...centeredStyles
         });
+        const setAlignmentBtn = document.createElement('button');
         //use when a button is clicked to get the difference between the time things are actually said and the specified time in the SRT
-        this.DOM.startOffsetBtn.textContent = 'Click when the first line is said: ';
+        setAlignmentBtn.textContent = 'Click when the first line is said: ';
         //not in this.DOM because it's contained by something else, not necessary to clean up individually
         const firstLine = document.createElement('pre');
         firstLine.textContent = this.srt.subs[0].text;
-        this.DOM.startOffsetBtn.appendChild(firstLine);
+        setAlignmentBtn.appendChild(firstLine);
+        this.DOM.alignmentSetContainer.appendChild(setAlignmentBtn);
+        
+        if (typeof lastAlignment === 'number') {
+            this.DOM.alignmentSetContainer.appendChild(document.createElement('br'));
+            const lastAlignmentBtn = document.createElement('button');
+            lastAlignmentBtn.textContent = `Use the last alignment (first line at ${(lastAlignment / 1000).toFixed(1)} seconds)`;
+            this.DOM.alignmentSetContainer.appendChild(lastAlignmentBtn);
+            lastAlignmentBtn.addEventListener('click', () => {
+                this.DOM.alignmentSetContainer.remove();
+                this.realign(lastAlignment);
+            })
+        }
         
         this.aligned = false;
-        this.DOM.startOffsetBtn.addEventListener('click', () => {
-            this.DOM.startOffsetBtn.remove();
+        setAlignmentBtn.addEventListener('click', () => {
+            this.DOM.alignmentSetContainer.remove();
             this.realign();
         });
         this.subOffset = 0;
     }
-    realign() {
-        this.subOffset = this.video.currentTime * 1000 - this.srt.subs[0].start - 400; //assume decent reaction time
+    realign(alignment) {
+        this.subOffset = alignment || this.video.currentTime * 1000 - this.srt.subs[0].start - 400; //assume decent reaction time
         this.aligned = true;
+        GM_setValue(this.alignmentKey, this.subOffset)
     }
 
     /**
