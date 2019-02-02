@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jisho Shortcuts
 // @namespace    http://tampermonkey.net/
-// @version      0.2.4
+// @version      0.2.5
 // @description  Hotkeys for some actions on jisho.org
 // @author       sheodox
 // @match        https://jisho.org/*
@@ -13,12 +13,18 @@
     
     let jpVoice;
     const voiceReady = new Promise(resolve => {
-        speechSynthesis.onvoiceschanged = () => {
+        const findVoice = () => {
             jpVoice = speechSynthesis.getVoices().find(voice => {
                 return voice.lang === 'ja-JP';
             });
             resolve();
         };
+        if (speechSynthesis.onvoiceschanged) {
+            speechSynthesis.onvoiceschanged = findVoice;
+        }
+        else {
+            findVoice();
+        }
     });
     function say(text) {
         voiceReady.then(() => {
