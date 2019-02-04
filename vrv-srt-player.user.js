@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.7
+// @version      0.0.8
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -59,6 +59,10 @@ const showOnTopStyles = {
 class SubRenderer {
     constructor(srt) {
         this.srt = new SRT(srt);
+        if (!this.srt.subs.length) {
+            alert('Error parsing subtitles! Please notify sheodox with the video and subs used so I can fix this.');
+            return;
+        }
         this.video = document.querySelector('video');
         this.alignmentKey = 'last-used-alignment';
         
@@ -355,14 +359,14 @@ class SRT {
                     styling = lines[0].match(/([a-zA-Z].*)/); //the rest of the line starting at the first alphabetical character
                 styling = styling.length ? styling[1] : ''; //might not have styling cues
                 
-                const getPercent = name => {
+                const getPercentCue = name => {
                         const match = styling.match(new RegExp(`${name}:([\\d\\.]*)%`));
-                        if (match.length) {
+                        if (match) {
                             return parseInt(match[1], 10) / 100;
                         }
                     },
                     //percentage of the total line area that is taken up by this subtitle
-                    line = getPercent('line');
+                    line = getPercentCue('line') || 1;
                 shift();
 
                 done.push({
