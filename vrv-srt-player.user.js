@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.8
+// @version      0.0.9
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -93,11 +93,16 @@ class SubRenderer {
             <button class="realign">Realign subs</button>
             <input id="scroll-subs" type="checkbox" checked>
             <label for="scroll-subs">Show subs over video</label>
-            <h2>Subtitle History</h2>
+            <h2 id="sub-history-heading">Subtitle History</h2>
             <ul class="recent-subs" style="list-style: none;"></ul>
             
             <style>
+            
+                :root {
+                    --tray-br: 3px;
+                }
                 .SR-tray {
+                    margin-top: 2rem;
                     width: 2vw;
                     background: rgba(255, 255, 255, 0.1);
                 }
@@ -106,7 +111,8 @@ class SubRenderer {
                 }
                 .SR-tray:hover {
                     width: 25vw;
-                    background: rgba(0, 0, 0, 0.7);
+                    background: rgb(33, 39, 55);
+                    border-radius: var(--tray-br);
                 }
                 .SR-tray:hover > * {
                     visibility: visible;
@@ -116,20 +122,31 @@ class SubRenderer {
                 }
                 .SR-tray h1 {
                     font-size: 2rem;
-                    border-bottom: 1px solid #00f9ac;
-                    background: rgba(0, 0, 0, 0.7);
-                    margin: 0;
+                    background: rgb(27, 26, 38);
+                    padding: 0.5rem 0;
+                    border-radius: 3px;
+                    margin: 0 0 0.5rem 0;
+                }
+                .SR-tray h2 {
+                    margin-bottom: 0;
+                    text-decoration: underline;
                 }
                 .SR-tray button {
-                    background: #303138;
-                    border: 1px solid #586c79;
-                    color: white;
+                    background: #fd0;
+                    border: none;
                     cursor: pointer;
-                    padding: 5px;
+                    padding: 10px;
                     line-height: 1;
+                    font-weight: bold;
+                    color: black;
                 }
                 .SR-tray button:hover {
-                    background: #4a4b56;
+                    background: #ffea6d;
+                }
+
+                .recent-subs {
+                    padding-top: 0;
+                    margin-top: 0;
                 }
 
                 .recent-subs li {
@@ -148,7 +165,9 @@ class SubRenderer {
                     padding: 0;
                     text-shadow: black 1px 1px 0, black 1px -1px 0, black -1px 1px 0, black -1px -1px 0, black 1px 0 0, black 0 1px 0, black -1px 0 0, black 0 -1px 0, black 1px 1px 1px;
                 }
-            </style>
+
+            
+</style>
         `;
         
         inTray('button.realign').addEventListener('click', () => this.realign());
