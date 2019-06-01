@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.10
+// @version      0.0.11
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -132,7 +132,7 @@ class SubRenderer {
                     margin-bottom: 0;
                     text-decoration: underline;
                 }
-                .SR-tray button {
+                .SR-tray button, .SR-button {
                     background: #fd0;
                     border: none;
                     cursor: pointer;
@@ -142,7 +142,7 @@ class SubRenderer {
                     color: black;
                     text-transform: uppercase;
                 }
-                .SR-tray button:hover {
+                .SR-tray button:hover, .SR-button:hover {
                     background: #ffea6d;
                 }
 
@@ -181,13 +181,18 @@ class SubRenderer {
      * Create the button that's used to align the sub times.
      */
     initSubAlignPrompt() {
-        const lastAlignment = GM_getValue(this.alignmentKey);
+        const lastAlignment = GM_getValue(this.alignmentKey),
+            createButton = () => {
+                const b = document.createElement('button');
+                b.classList.add('SR-button');
+                return b;
+            };
         
         this.createTopLevelElement('alignmentSetContainer', 'div', {
             fontSize: '2rem',
             ...centeredStyles
         });
-        const setAlignmentBtn = document.createElement('button');
+        const setAlignmentBtn = createButton();
         //use when a button is clicked to get the difference between the time things are actually said and the specified time in the SRT
         setAlignmentBtn.textContent = 'Click when the first line is said: ';
         //not in this.DOM because it's contained by something else, not necessary to clean up individually
@@ -198,7 +203,7 @@ class SubRenderer {
         
         if (typeof lastAlignment === 'number') {
             this.DOM.alignmentSetContainer.appendChild(document.createElement('br'));
-            const lastAlignmentBtn = document.createElement('button');
+            const lastAlignmentBtn = createButton();
             lastAlignmentBtn.textContent = `Use the last alignment (first line at ${(lastAlignment / 1000).toFixed(1)} seconds)`;
             this.DOM.alignmentSetContainer.appendChild(lastAlignmentBtn);
             lastAlignmentBtn.addEventListener('click', () => {
