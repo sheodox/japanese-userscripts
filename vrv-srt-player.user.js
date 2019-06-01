@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.12
+// @version      0.0.13
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -37,12 +37,18 @@ const showOnTopStyles = {
         let ta = document.createElement('textarea');
         ta.setAttribute('placeholder', 'paste SRT file contents here');
 
-        ta.addEventListener('keyup', () => {
+        //check if an SRT file has been pasted in (polling so both Ctrl+V and "Paste" from context menu are caught).
+        function pollForSRT() {
             if (ta.value.length) {
                 sr = new SubRenderer(ta.value);
                 ta.remove();
             }
-        });
+            else {
+                setTimeout(pollForSRT, 50);
+            }
+        }
+        pollForSRT();
+
         Object.assign(ta.style, centeredStyles);
         document.body.appendChild(ta);
     }
