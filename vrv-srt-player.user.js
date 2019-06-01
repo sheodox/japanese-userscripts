@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.11
+// @version      0.0.12
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -24,7 +24,10 @@ const showOnTopStyles = {
     'use strict';
 
     let sr;
-    
+
+    /**
+     * Runs when a new video plays. Prompts for the SRT file and kicks off the subtitling process.
+     */
     function promptSRT() {
         //remove everything for the previous subrenderer
         console.log(`\n\nNEW VIDEO\n\n`);
@@ -162,6 +165,16 @@ class SubRenderer {
                     color: #11caf4;
                     cursor: pointer;
                 }
+                .recent-subs li:not(:first-of-type)::before {
+                  content: ' ';
+                  position: relative;
+                  background: #f47521;
+                  height: 0.1rem;
+                  width: 3.2rem;
+                  display: block;
+                  margin: 0 auto;
+                  border-radius: 4px;
+                }
                 #SR-sub-track p {
                     margin: 0;
                     padding: 0;
@@ -287,6 +300,9 @@ class SubRenderer {
     };
 
 
+    /**
+     * Display subtitles for the current video time (called on every frame the browser paints).
+     */
     frame() {
         if (!this.dead) {
             requestAnimationFrame(() => {
@@ -295,17 +311,26 @@ class SubRenderer {
         }
        
         let line = 0;
+        /**
+         * Show a line of subtitle text.
+         * @param text
+         * @param fontScale
+         */
         const createLine = (text, fontScale) => {
-            //reuse existing element
+            //reuse existing element if one exists, otherwise create a new 'p' element for this line of text.
             let el = this.DOM.subEl.children[line];
             if (!el) {
                 el = document.createElement('p');
                 this.DOM.subEl.appendChild(el);
             }
             el.textContent = text;
+            //SRT gives us a font size in percentage, sometimes it's real small so make sure it's no less than 0.5rem
             el.style.fontSize = `${0.5 + 3 * fontScale}rem`;
             line++;
         };
+        /**
+         * For any additional subtitle line elements, empty the text.
+         */
         const flushRemainingLines = () => {
             for (let i = line; i < this.DOM.subEl.children.length; i++) {
                 this.DOM.subEl.children[i].textContent = '';
@@ -360,6 +385,9 @@ class SubRenderer {
     }
 }
 
+/**
+ * Parser for SRT files. Can return an array of subtitles and their styling at any point in time during a video.
+ */
 class SRT {
     constructor(srt) {
         this.parse(srt);
