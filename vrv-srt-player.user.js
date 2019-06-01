@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.9
+// @version      0.0.10
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -90,7 +90,7 @@ class SubRenderer {
         tray.className = 'SR-tray'; //sr = subtitle renderer
         tray.innerHTML = `
             <h1>SubRenderer</h1>
-            <button class="realign">Realign subs</button>
+            <button class="realign" title="Click when the first subtitled line is said to align the timestamps on the SRT file to the actual video time.">Realign subs</button>
             <input id="scroll-subs" type="checkbox" checked>
             <label for="scroll-subs">Show subs over video</label>
             <h2 id="sub-history-heading">Subtitle History</h2>
@@ -126,6 +126,7 @@ class SubRenderer {
                     padding: 0.5rem 0;
                     border-radius: 3px;
                     margin: 0 0 0.5rem 0;
+                    border-bottom: 2px solid #f47521;
                 }
                 .SR-tray h2 {
                     margin-bottom: 0;
@@ -139,6 +140,7 @@ class SubRenderer {
                     line-height: 1;
                     font-weight: bold;
                     color: black;
+                    text-transform: uppercase;
                 }
                 .SR-tray button:hover {
                     background: #ffea6d;
