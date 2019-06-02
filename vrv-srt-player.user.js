@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.13
+// @version      0.0.14
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -111,9 +111,10 @@ class SubRenderer {
                     --tray-br: 3px;
                 }
                 .SR-tray {
-                    margin-top: 2rem;
+                    margin-top: 0.5rem;
                     width: 2vw;
                     background: rgba(255, 255, 255, 0.1);
+                    overflow: auto;
                 }
                 .SR-tray > * {
                     visibility: hidden;
