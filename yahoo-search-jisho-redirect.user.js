@@ -1,10 +1,12 @@
 // ==UserScript==
 // @name         Yahoo Search Jisho Redirect
 // @namespace    http://tampermonkey.net/
-// @version      0.1.2
+// @version      0.1.3
 // @description  Redirects yahoo searches to jisho searches for easy lookups from MCBookViewer
 // @author       You
-// @match        https://dic.yahoo.co.jp/search/?ei=UTF-8&p=*
+// @match        *://dic.yahoo.co.jp/search/?ei=UTF-8&p=*
+// @match        *://dic.yahoo.co.jp/search?ei=UTF-8&p=*
+// @match        *://dic.yahoo.co.jp/close/?ei=UTF-8&p=*
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
