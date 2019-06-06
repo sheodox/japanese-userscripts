@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.14
+// @version      0.0.15
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -416,9 +416,13 @@ class SRT {
                 if (/^\d*$/.test(lines[0])) {
                     shift();
                 }
-                let [startStr, endStr] = lines[0].match(/^([\d:\.\-> ]*)/)[0].split(/\-\->/),
+                let [startStr, endStr] = lines[0]
+                        //second decimal point could be a comma, make it a period
+                        .replace(/,/g, '.')
+                        .match(/^([\d:\.\-> ]*)/)
+                        [0].split(/\-\->/),
                     styling = lines[0].match(/([a-zA-Z].*)/); //the rest of the line starting at the first alphabetical character
-                styling = styling.length ? styling[1] : ''; //might not have styling cues
+                styling = styling && styling.length ? styling[1] : ''; //might not have styling cues
                 
                 const getPercentCue = name => {
                         const match = styling.match(new RegExp(`${name}:([\\d\\.]*)%`));
