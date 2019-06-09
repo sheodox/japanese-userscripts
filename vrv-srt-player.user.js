@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VRV SRT Player
 // @namespace    http://tampermonkey.net/
-// @version      0.0.15
+// @version      0.0.16
 // @description  Display SRT format subtitles on VRV
 // @author       sheodox
 // @match        https://static.vrv.co/vilos/player.html
@@ -29,6 +29,8 @@ const showOnTopStyles = {
      * Runs when a new video plays. Prompts for the SRT file and kicks off the subtitling process.
      */
     function promptSRT() {
+        //storing the last used SRT file for easy debugging
+        const lastSRTKey = 'sr-last-srt';
         //remove everything for the previous subrenderer
         console.log(`\n\nNEW VIDEO\n\n`);
         if (sr) {
@@ -39,18 +41,24 @@ const showOnTopStyles = {
 
         //check if an SRT file has been pasted in (polling so both Ctrl+V and "Paste" from context menu are caught).
         function pollForSRT() {
-            if (ta.value.length) {
+            let srt = ta.value;
+            //if you hit 'l' it should load the last used srt
+            if (srt === 'l') {
+                ta.value = GM_getValue(lastSRTKey);
+            }
+            else if (srt.length) {
+                GM_setValue(lastSRTKey, srt);
                 sr = new SubRenderer(ta.value);
                 ta.remove();
+                return;
             }
-            else {
-                setTimeout(pollForSRT, 50);
-            }
+            setTimeout(pollForSRT, 50);
         }
         pollForSRT();
 
         Object.assign(ta.style, centeredStyles);
         document.body.appendChild(ta);
+        ta.focus();
     }
     
     //poll for video changes
