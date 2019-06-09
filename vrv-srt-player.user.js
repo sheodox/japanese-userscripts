@@ -108,8 +108,8 @@ class SubRenderer {
         tray.innerHTML = `
             <h1>SubRenderer</h1>
             <button class="realign" title="Click when the first subtitled line is said to align the timestamps on the SRT file to the actual video time.">Realign subs</button>
-            <input id="scroll-subs" type="checkbox" checked>
-            <label for="scroll-subs">Show subs over video</label>
+            <input id="show-subs" type="checkbox" checked>
+            <label for="show-subs">Show subs over video</label>
             <h2 id="sub-history-heading">Subtitle History</h2>
             <ul class="recent-subs" style="list-style: none;"></ul>
             
@@ -202,7 +202,7 @@ class SubRenderer {
         
         inTray('button.realign').addEventListener('click', () => this.realign());
         this.DOM.recentSubs = inTray('.recent-subs');
-        this.DOM.showSubs = inTray('#scroll-subs');
+        this.DOM.showSubs = inTray('#show-subs');
     }
 
     /**
