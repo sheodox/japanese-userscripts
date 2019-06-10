@@ -81,6 +81,7 @@ class SubRenderer {
             return;
         }
         this.video = document.querySelector('video');
+        this.videoController = new VideoController(this.video);
         this.alignmentKey = 'last-used-alignment';
         
         this.DOM = {};
@@ -107,9 +108,16 @@ class SubRenderer {
         tray.className = 'SR-tray'; //sr = subtitle renderer
         tray.innerHTML = `
             <h1>SubRenderer</h1>
-            <button class="realign" title="Click when the first subtitled line is said to align the timestamps on the SRT file to the actual video time.">Realign subs</button>
-            <input id="show-subs" type="checkbox" checked>
-            <label for="show-subs">Show subs over video</label>
+            <button id="sr-settings-open">Settings</button>
+            <div id="sr-settings" class="sr-hidden">
+                <button class="realign" title="Click when the first subtitled line is said to align the timestamps on the SRT file to the actual video time.">Realign subs</button>
+                <br>
+                <input id="show-subs" type="checkbox" checked>
+                <label for="show-subs">Show subs over video</label>
+                <br>
+                <input id="pause-on-tray" type="checkbox" checked>
+                <label for="pause-on-tray">Pause when tray is open</label>
+            </div>
             <h2 id="sub-history-heading">Subtitle History</h2>
             <ul class="recent-subs" style="list-style: none;"></ul>
             
@@ -195,14 +203,38 @@ class SubRenderer {
                     padding: 0;
                     text-shadow: black 1px 1px 0, black 1px -1px 0, black -1px 1px 0, black -1px -1px 0, black 1px 0 0, black 0 1px 0, black -1px 0 0, black 0 -1px 0, black 1px 1px 1px;
                 }
+                #sr-settings-open {
+                    position: absolute;
+                    right: 0;
+                    top: 0;
+                }
+                .sr-hidden {
+                    display: none;
+                }
 
             
 </style>
         `;
         
         inTray('button.realign').addEventListener('click', () => this.realign());
+        this.DOM.settingsOpen = inTray('#sr-settings-open');
+        this.DOM.settingsPanel = inTray('#sr-settings');
         this.DOM.recentSubs = inTray('.recent-subs');
         this.DOM.showSubs = inTray('#show-subs');
+        this.DOM.pauseOnTray = inTray('#pause-on-tray');
+
+        this.DOM.settingsOpen.addEventListener('click', () => {
+            this.DOM.settingsPanel.classList.toggle('sr-hidden');
+        });
+
+        tray.addEventListener('mouseenter', () => {
+            if (this.DOM.pauseOnTray.checked) {
+                this.videoController.addPauser('tray');
+            }
+        });
+        tray.addEventListener('mouseleave', () => {
+            this.videoController.removePauser('tray');
+        });
     }
 
     /**
@@ -270,9 +302,8 @@ class SubRenderer {
         this.DOM.subEl.setAttribute('title', 'Click to search this line on Jisho\nRight click to search the previous line');
 
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden && this.resumeOnReturn) {
-                this.video.play();
-                this.resumeOnReturn = false;
+            if (!document.hidden) {
+                this.videoController.removePauser('define');
             }
         });
 
@@ -308,10 +339,7 @@ class SubRenderer {
     
     define(sub) {
         window.open(`https://jisho.org/search/${encodeURIComponent(sub)}`);
-        if (!this.video.paused) {
-            this.video.pause();
-            this.resumeOnReturn = true;
-        }
+        this.videoController.addPauser('define');
     };
 
 
@@ -392,10 +420,40 @@ class SubRenderer {
             li.style.transform = 'scaleY(1)';
         }, 1);
         
-        li.addEventListener('click', () => this.define(text));
+        li.addEventListener('click', () => {
+            this.define(text)
+        });
         
         if (this.DOM.recentSubs.children.length > 10) {
             this.DOM.recentSubs.firstChild.remove();
+        }
+    }
+}
+
+class VideoController {
+    constructor(videoElement) {
+        this.video = videoElement;
+        this.reasons = [];
+    }
+    //adds a reason to pause the video, allowing multiple things to have a reason to pause the video without them fighting for control
+    addPauser(reason) {
+        this.reasons.push(reason);
+        this._checkPause();
+    }
+    removePauser(reason) {
+        const i = this.reasons.indexOf(reason);
+        if (i !== -1) {
+            this.reasons.splice(i, 1);
+            this._checkPause();
+        }
+    }
+    //if there's no reason the video should be paused, play it
+    _checkPause() {
+        if (this.reasons.length) {
+            this.video.pause();
+        }
+        else {
+            this.video.play();
         }
     }
 }
