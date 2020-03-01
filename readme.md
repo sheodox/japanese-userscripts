@@ -42,9 +42,11 @@ Redirects Yahoo dictionary searches to Jisho searches. Useful with the other use
 
 Redirects Google.co.jp searches to Jisho searches. Used in the same way as the Yahoo search redirect. This will redirect any Google.co.jp search so you probably will want to use Google.com for any actual searching.
 
-## [vrv-srt-player.user.js](https://github.com/sheodox/japanese-userscripts/raw/master/vrv-srt-player.user.js)
+## vrv-srt-player.user.js
 
 Show Japanese subtitles over anime on VRV. Just past a full SRT file in at the beginning of an episode, click the button when the first word is said and that's it! Some extra functionality can be seen by hovering to the right side of the screen.
+
+**Development of this script has [moved to its own repository here.](https://github.com/sheodox/vrv-subtitler)** All future development will continue there.
 
 ## Context menu scripts
 
