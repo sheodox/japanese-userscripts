@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jisho Shortcuts
 // @namespace    http://tampermonkey.net/
-// @version      0.2.8
+// @version      0.2.9
 // @description  Hotkeys for some actions on jisho.org
 // @author       sheodox
 // @match        https://jisho.org/*
