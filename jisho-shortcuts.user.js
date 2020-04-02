@@ -204,7 +204,7 @@
         }
     }
 
-    const cachedSearches = [];
+    const cachedSearches = {};
     async function search(searchText) {
         if (!searchText) {
             return;
