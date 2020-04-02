@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jisho Shortcuts
 // @namespace    http://tampermonkey.net/
-// @version      0.2.5
+// @version      0.2.6
 // @description  Hotkeys for some actions on jisho.org
 // @author       sheodox
 // @match        https://jisho.org/*
@@ -10,30 +10,34 @@
 
 (function() {
     'use strict';
-    
+
     let jpVoice;
     const voiceReady = new Promise(resolve => {
-        const findVoice = () => {
+        function checkVoices() {
             jpVoice = speechSynthesis.getVoices().find(voice => {
-                return voice.lang === 'ja-JP';
+                return voice.lang === 'ja-JP' || voice.lang === 'ja';
             });
-            resolve();
-        };
-        if (speechSynthesis.onvoiceschanged) {
-            speechSynthesis.onvoiceschanged = findVoice;
+
+            if (jpVoice) {
+                resolve();
+            }
         }
-        else {
-            findVoice();
-        }
+        speechSynthesis.onvoiceschanged = checkVoices; //chrome
+        checkVoices(); //firefox
     });
-    function say(text) {
+
+    export const say = (text) => {
+        if (!text) {
+            return;
+        }
         voiceReady.then(() => {
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.voice = jpVoice;
                 speechSynthesis.speak(utterance);
             }
         )
-    }
+    };
+
 
     //say what each key does
     const keys = { s: 83, c: 67, w: 87, r: 82, g: 71, q: 81 };
