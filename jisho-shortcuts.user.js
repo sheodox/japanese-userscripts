@@ -13,6 +13,24 @@
 (function() {
     'use strict';
 
+    const cachedSearches = {};
+    async function search(searchText) {
+        if (!searchText) {
+            return;
+        }
+        if (!cachedSearches[searchText]) {
+            const result = await fetch(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(searchText)}`).then(res => res.json());
+
+            if (result.meta.status === 200) { //success
+                cachedSearches[searchText] = result.data[0];
+                return result.data[0];
+            }
+        }
+        if (cachedSearches[searchText]) {
+            return cachedSearches[searchText];
+        }
+    }
+
     let jpVoice;
     const voiceReady = new Promise(resolve => {
         function checkVoices() {
@@ -199,23 +217,4 @@
             say(reading);
         }
     }
-
-    const cachedSearches = {};
-    async function search(searchText) {
-        if (!searchText) {
-            return;
-        }
-        if (!cachedSearches[searchText]) {
-            const result = await fetch(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(searchText)}`).then(res => res.json());
-
-            if (result.meta.status === 200) { //success
-                cachedSearches[searchText] = result.data[0];
-                return result.data[0];
-            }
-        }
-        if (cachedSearches[searchText]) {
-            return cachedSearches[searchText];
-        }
-    }
-
 })();
