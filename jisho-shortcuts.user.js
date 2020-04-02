@@ -165,11 +165,7 @@
     }
 
     function firstResultText() {
-        const firstResultContainer = document.querySelector('.concept_light');
-        //safety check in case there are no results
-        if (firstResultContainer) {
-            return firstResultContainer.querySelector('.concept_light-representation .text').textContent.trim();
-        }
+        return $('.concept_light .concept_light-representation .text').eq(0).text().trim()
     }
     function firstResultDetails() {
         return search(firstResultText());
