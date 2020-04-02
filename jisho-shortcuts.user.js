@@ -32,6 +32,7 @@
         if (!text) {
             return;
         }
+        speechSynthesis.cancel();
         voiceReady.then(() => {
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.voice = jpVoice;
@@ -141,10 +142,26 @@
                 //read the whole search text
                 say(searchField.value);
                 break;
+            case 'ArrowLeft':
+                selectSiblingWord('prev');
+                break;
+            case 'ArrowRight':
+                selectSiblingWord('next');
+                break;
             default:
                 return false;
         }
         return true;
+    }
+
+    function selectSiblingWord(dir) {
+        // #zen_bar is the container for the entire sentence that was looked up, it contains 'ul li span a'
+        $('#zen_bar a.current')
+            .closest('li')
+            [`${dir}Until`](null, ':has(a)')
+            .eq(0)
+            .find('a')
+            .click();
     }
 
     function firstResultText() {
