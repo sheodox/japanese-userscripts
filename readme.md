@@ -2,6 +2,12 @@
 
 This repo is a collection of userscripts for [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) I've made for helping studying Japanese.
 
+## [vrv-episode-details-hider.user.js](https://github.com/sheodox/japanese-userscripts/raw/master/vrv-episode-details-hider.user.js)
+
+This script censors the episode descriptions and titles on VRV. It'll still show the episode
+ number in the title, but the rest is hidden until you hover the title or description. Useful for
+ shows that like to spoil the episode plot in the description or title.
+
 ## [jisho-shortcuts.user.js](https://github.com/sheodox/japanese-userscripts/raw/master/jisho-shortcuts.user.js)
 
 Several shortcut keys for Jisho.org searches (while not typing in the search bar):
