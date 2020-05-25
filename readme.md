@@ -2,6 +2,15 @@
 
 This repo is a collection of userscripts for [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) I've made for helping studying Japanese.
 
+## [jisho-radical-search-by-kanji.user.js](https://github.com/sheodox/japanese-userscripts/raw/master/jisho-radical-search-by-kanji.user.js)
+
+This script lets you type kanji you know to highlight the radicals in the list that make up those
+ kanji. Should be very helpful when you're trying to search for kanji that you don't know, but
+ looks like something you recognize and should cut down on the amount of time it takes to search
+ unknown words.
+ 
+![radical search screenshot](https://raw.githubusercontent.com/sheodox/japanese-userscripts/master/images/radical-search.png)
+
 ## [vrv-episode-details-hider.user.js](https://github.com/sheodox/japanese-userscripts/raw/master/vrv-episode-details-hider.user.js)
 
 This script censors the episode descriptions and titles on VRV. It'll still show the episode
