@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Jisho Dark Mode
 // @namespace    http://tampermonkey.net/
-// @version      0.0.5
+// @version      0.0.6
 // @description  Eye friendly dark mode for Jisho.org.
 // @author       sheodox
 // @match        https://jisho.org/*
@@ -46,6 +46,11 @@ header {
 .fact {
     background: #cecece;
     border: none;
+}
+
+/* don't invert context.reviews toasts */
+#context-reviews-root {
+    filter: invert(1);
 }
 `;
 
