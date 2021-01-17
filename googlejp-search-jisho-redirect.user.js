@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Search Jisho Redirect
 // @namespace    http://tampermonkey.net/
-// @version      0.1.2
+// @version      0.1.3
 // @description  Redirects yahoo searches to jisho searches for easy lookups
 // @author       You
 // @match        https://www.google.co.jp/search*
@@ -60,6 +60,9 @@ function trim(phrase) {
         remove(trailingOpen);
         remove(leadingClose);
     });
+
+    //some books like 転スラ use fancy quote characters that look like boxes to me everywhere, replace them!
+    phrase = phrase.replace(/□/g, '《').replace(/□/g, '》');
 
     return phrase;
 }
