@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         VRV Episode Details Hider
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  try to take over the world!
 // @author       sheodox
-// @match        https://vrv.co/watch/*
+// @match        https://vrv.co/*
 // @grant        none
 // ==/UserScript==
 
@@ -17,7 +17,7 @@
 		// the first one to roughly attempt to mask over everything after the episode number (shorter titles
 		// might expose part of the title. a better solution would adjust this based on the number of digits
 		// in the episode number), the second gradient masks everything beyond the first line for wrapped titles
-		exposedTitleWidth = '75px',
+		exposedTitleWidth = '60px',
 		exposedTitleHeight = '30px';
 	style.textContent = `
 		.description, h2.title {
