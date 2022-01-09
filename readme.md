@@ -53,15 +53,17 @@ Add a small panel on the top right of the edit page. There's a checkbox for togg
 
 Redirects Yahoo dictionary searches to Jisho searches. Useful with the other userscripts above, especially for ebook readers without a copy function. An entire sentence containing an unknown word can be selected and searched so you can use Jisho and the shortcuts in the Jisho Shortcuts userscript. Hitting 'c' with that installed will copy the context sentence to be easily pasted into the Memrise Add Wizard.
 
-## [googlejp-search-jisho-redirect.user.js](https://github.com/sheodox/japanese-userscripts/raw/master/googlejp-search-jisho-redirect.user.js)
+## googlejp-search-jisho-redirect.user.js
 
 Redirects Google.co.jp searches to Jisho searches. Used in the same way as the Yahoo search redirect. This will redirect any Google.co.jp search so you probably will want to use Google.com for any actual searching.
+
+**Development of this script has [moved to its own repository](https://github.com/sheodox/redirect-googlejp-to-jisho).** It is now packaged as a browser extension to be more effective and is available for Firefox. All future development will continue there.
 
 ## vrv-srt-player.user.js
 
 Show Japanese subtitles over anime on VRV. Just past a full SRT file in at the beginning of an episode, click the button when the first word is said and that's it! Some extra functionality can be seen by hovering to the right side of the screen.
 
-**Development of this script has [moved to its own repository here.](https://github.com/sheodox/vrv-subtitler)** All future development will continue there.
+**Development of this script has [moved to its own repository](https://github.com/sheodox/vrv-subtitler).** All future development will continue there.
 
 ## Context menu scripts
 
